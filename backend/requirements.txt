@@ -1,0 +1,10 @@
+fastapi
+pandas
+SQLAlchemy
+python-dotenv
+openai
+uvicorn
+python-multipart
+langchain
+langchain-community
+langchain-openai

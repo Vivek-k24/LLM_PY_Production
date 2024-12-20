@@ -1,0 +1,56 @@
+prompts:
+  numeric:
+    - "What is the average value of {column}?"
+    - "Find the total sum of {column}, grouped by another column."
+    - "What is the highest value in {column}?"
+    - "What is the lowest value in {column}?"
+    - "Rank all rows by {column} in descending order and show the top 10."
+    - "Calculate the percentage contribution of each value in {column} to the total."
+    - "Find rows where {column} exceeds a certain threshold."
+    - "Compute the standard deviation of {column}."
+    - "Calculate the moving average of {column} over a specified time window."
+
+  string:
+    - "What are the distinct values in {column}?"
+    - "Count the occurrences of each value in {column} and sort by frequency."
+    - "Identify the most common value in {column}."
+    - "Filter rows where {column} matches a specific keyword or pattern."
+    - "Group data by {column} and calculate aggregate statistics (e.g., sum, average) for another column."
+    - "Find rows where {column} starts with or ends with a specific substring."
+    - "Count the number of unique entries in {column}."
+
+  datetime:
+    - "Group rows by year from {column} and count the number of entries for each year."
+    - "Group rows by month from {column} and find the average of another column."
+    - "Filter rows where {column} is within a specific date range."
+    - "Find the earliest and latest dates in {column}."
+    - "Calculate the difference between dates in {column} and another date."
+    - "Determine the day of the week with the highest activity based on {column}."
+    - "Create a timeline of events using {column}."
+
+  relationships:
+    - "Join this table with another table on a common key and calculate the total sales."
+    - "Find the top 5 customers (from another table) by total {column}."
+    - "Identify rows where a foreign key in this table matches a key in another table."
+    - "Perform a left join with another table and include only matching records."
+    - "Group by a column in this table and aggregate data from another related table."
+
+  general:
+    - "List all columns and their data types for the table."
+    - "Show a summary of the table, including counts, averages, and sums for all numeric columns."
+    - "List the total number of rows in the table."
+    - "Show the top 10 rows in the table."
+    - "Generate a pivot table with {column1} as rows and {column2} as columns, showing aggregate values."
+    - "Detect missing values in the table and show their counts by column."
+    - "Sort the entire table by a specific column."
+    - "Filter rows based on multiple conditions across columns."
+
+  advanced:
+    - "Detect outliers in {column} using statistical methods."
+    - "Create a histogram of {column} with predefined bins."
+    - "Generate a correlation matrix for all numeric columns."
+    - "Identify trends over time using {column}."
+    - "Group by multiple columns and calculate aggregates for each group."
+    - "Perform a window function (e.g., rank, dense_rank) on {column}."
+    - "Write a query to calculate cumulative totals for {column}."
+    - "Analyze seasonality or patterns in {column} over time."
