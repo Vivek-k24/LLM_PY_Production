@@ -5,13 +5,14 @@ import pandas as pd
 
 # Predefined columns with spaces to ensure proper SQL syntax
 COLUMNS_WITH_SPACES = [
-    "Commission Earned",
-    "Commission Rate",
-    "Sale Price",
-    "Car Make",
-    "Car Model",
-    "Car Year",
-    "Customer Name",
+    "Date",
+    "CommissionEarned",
+    "CommissionRate",
+    "SalePrice",
+    "CarMake",
+    "CarModel",
+    "CarYear",
+    "CustomerName",
     "Salesperson"
 ]
 
@@ -53,8 +54,23 @@ class LLMService:
             query = query.split("```sql")[-1].split("```")[0].strip()
 
         for column in COLUMNS_WITH_SPACES:
-            pattern = rf"(?<!\[){column}(?!\])"
+            pattern = rf"(?<!\[){re.escape(column)}(?!\])"
             query = re.sub(pattern, f"[{column}]", query)
+        
+        query = query.replace("Car_Make", "[CarMake]")
+        query = query.replace("Car_Model", "[CarModel]")
+        query = query.replace("Car_Year", "[CarYear]")
+        query = query.replace("Sale_Price", "[SalePrice]")
+        query = query.replace("Customer_Name", "[CustomerName]")
+        query = query.replace("Commission_Earned", "[CommissionEarned]")
+        query = query.replace("Commission_Rate", "[CommissionRate]")
+
+        if "LIMIT" in query:
+            limit_match = re.search(r"LIMIT\s+(\d+)", query)
+            if limit_match:
+                limit_value = int(limit_match.group(1))
+                query = re.sub(r"LIMIT\s+\d+", "", query)  # Remove the LIMIT clause
+                query = re.sub(r"SELECT", f"SELECT TOP {limit_value}", query, count=1)
 
         return query
 
@@ -64,7 +80,8 @@ class LLMService:
             with self.engine.connect() as connection:
                 result = connection.execute(query)
                 rows = result.fetchall()
-                return [dict(row) for row in rows]
+                results = [dict(zip(result.keys(), row)) for row in rows]
+                return results
         except Exception as e:
             raise ValueError(f"Error executing query: {e}")
 

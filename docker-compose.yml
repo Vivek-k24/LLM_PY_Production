@@ -29,12 +29,13 @@ services:
     restart: always
 
   db:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    build:
+      context: ./db
     ports:
       - "1433:1433"
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "YourStrong!Passw0rd"
+      SA_PASSWORD: "Newstrongpassword123"
       MSSQL_PID: "Express"
     volumes:
       - mssql_data:/var/opt/mssql
