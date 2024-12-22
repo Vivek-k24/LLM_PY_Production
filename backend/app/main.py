@@ -60,6 +60,7 @@ async def etl_endpoint(prompt: str = Form(...)):
             "You are a helpful assistant that generates valid SQL queries. "
             "Use the 'car_sales_data' table in datasets database with columns: Date, Salesperson, Customer Name, Car Make, "
             "Car Model, Car Year, Sale Price, Commission Rate, Commission Earned. "
+            "No other tables exist. You are only to use the car_sales_data table."
             "User query: "
         ) + prompt
         generated_sql = llm_service.generate_sql_query(refined_prompt)

@@ -79,6 +79,8 @@ class LLMService:
         query = re.sub(r"\bdatasets\.", "", query)
         query = query.replace("Mapped_[CarMake]", "[Mapped_CarMake]")
         query = query.replace("Car Manufacturer", "[CarMake]")
+        query = query.replace("car_sales_data", "dbo.car_sales_data")
+        query = query.replace("CURDATE()", "GETDATE()")
 
         if "LIMIT" in query:
             limit_match = re.search(r"LIMIT\s+(\d+)", query)
@@ -93,14 +95,17 @@ class LLMService:
         """Execute the SQL query and fetch results."""
         try:
             with self.engine.connect() as connection:
-                result = connection.execute(query)
-                if result.returns_rows:
-                    rows = result.fetchall()
-                    results = [dict(zip(result.keys(), row)) for row in rows]
-                    return results
-                else:
-                    raise ValueError("Query executed successfully but no rows returned")
+                with connection.begin() as transaction:
+                    result = connection.execute(query)
+                    if result.returns_rows:
+                        rows = result.fetchall()
+                        results = [dict(zip(result.keys(), row)) for row in rows]
+                        return results
+                    else:
+                        transaction.commit()
+                        return {"message": f"Query executed successfully. Rows affected: {result.rowcount}"}
         except Exception as e:
+            print(f"Failed SQL query: {query}")
             raise ValueError(f"Error executing query: {e}")
 
     def main_process(self, dataset_path):
