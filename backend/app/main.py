@@ -63,6 +63,7 @@ async def etl_endpoint(prompt: str = Form(...)):
             "User query: "
         ) + prompt
         generated_sql = llm_service.generate_sql_query(refined_prompt)
+        print("Generated SQL Query: ", generated_sql)
 
         # Execute the SQL query
         results = llm_service.execute_query(text(generated_sql))

@@ -64,6 +64,21 @@ class LLMService:
         query = query.replace("Customer_Name", "[CustomerName]")
         query = query.replace("Commission_Earned", "[CommissionEarned]")
         query = query.replace("Commission_Rate", "[CommissionRate]")
+        query = query.replace("Car Make", "[CarMake]")
+        query = query.replace("Car Model", "[CarModel]")
+        query = query.replace("Car Year", "[CarYear]")
+        query = query.replace("Sale Price", "[SalePrice]")
+        query = query.replace("Customer Name", "[CustomerName]")
+        query = query.replace("Commission Earned", "[CommissionEarned]")
+        query = query.replace("Commission Rate", "[CommissionRate]")
+        query = query.replace("`", "[]").replace("`","]")
+        query = re.sub(r"\[\s+", "[", query)  
+        query = re.sub(r"\s+\]", "]", query)
+        query = re.sub(r"\[\[|\]\]", "", query)  # Remove stray brackets
+        query = re.sub(r"`", "[", query).replace("]", "]")
+        query = re.sub(r"\bdatasets\.", "", query)
+        query = query.replace("Mapped_[CarMake]", "[Mapped_CarMake]")
+        query = query.replace("Car Manufacturer", "[CarMake]")
 
         if "LIMIT" in query:
             limit_match = re.search(r"LIMIT\s+(\d+)", query)
@@ -79,9 +94,12 @@ class LLMService:
         try:
             with self.engine.connect() as connection:
                 result = connection.execute(query)
-                rows = result.fetchall()
-                results = [dict(zip(result.keys(), row)) for row in rows]
-                return results
+                if result.returns_rows:
+                    rows = result.fetchall()
+                    results = [dict(zip(result.keys(), row)) for row in rows]
+                    return results
+                else:
+                    raise ValueError("Query executed successfully but no rows returned")
         except Exception as e:
             raise ValueError(f"Error executing query: {e}")
 
