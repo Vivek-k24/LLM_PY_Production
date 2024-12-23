@@ -1,0 +1,15 @@
+{
+    "dataset_name": "car_sales_data",
+    "columns": {
+        "Date": "The date of the sale in MM/DD/YYYY format",
+        "Salesperson": "The name of the salesperson involved",
+        "CustomerName": "The name of the customer",
+        "CarMake": "The manufacturer of the car",
+        "CarModel": "The model of the car",
+        "CarYear": "The year the car was manufactured",
+        "SalePrice": "The price at which the car was sold",
+        "CommissionRate": "The percentage commission earned",
+        "CommissionEarned": "The amount earned as commission"
+    },
+    "purpose": "Analyze car sales data exclusively from the primary data source, car_sales_data. No other tables are available."
+}

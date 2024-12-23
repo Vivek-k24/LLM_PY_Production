@@ -35,8 +35,9 @@ services:
       - "1433:1433"
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "Newstrongpassword123"
-      MSSQL_PID: "Express"
+      MSSQL_SA_PASSWORD: "Newstrongpassword123"
+      MSSQL_AUTHENTICATION_MODE: "Mixed"
+      MSSQL_PID: "Developer"
     volumes:
       - mssql_data:/var/opt/mssql
     networks:
