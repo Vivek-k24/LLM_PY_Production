@@ -5,7 +5,7 @@ import os
 import shutil
 import pandas as pd
 from app.llm_service import LLMService
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 app = FastAPI()
 
@@ -17,10 +17,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Environment variables
 API_KEY = os.getenv("OPENAI_API_KEY")
-DB_URL = os.getenv("DATABASE_URL")
-DATASETS_FOLDER = "/app/Datasets"
-METADATA_PATH = "/app/Datasets/dataset_metadata.json"
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DB_URL = os.getenv("DATABASE_URL", "postgresql://postgres:123456@localhost:5432/app_db")
+DATASETS_FOLDER = os.path.join(BASE_DIR, "../Datasets")
+METADATA_PATH = os.path.join(DATASETS_FOLDER, "dataset_metadata.json")
+
+# Ensure datasets folder exists
 os.makedirs(DATASETS_FOLDER, exist_ok=True)
 
 llm_service = LLMService(api_key=API_KEY, db_url=DB_URL, metadata_path=METADATA_PATH)
@@ -33,9 +37,17 @@ async def upload_file(file: UploadFile):
             shutil.copyfileobj(file.file, buffer)
 
         data = llm_service.load_dataset(file_path)
-        llm_service.store_data_in_sql(data, table_name="car_sales_data")
+        table_name = llm_service.dataset_metadata.get("dataset_name")
+        if not table_name:
+            raise ValueError("Table name not defined in the metadata file.")
+        
+        llm_service.store_data_in_sql(data, table_name=table_name)
 
-        return {"message": f"File '{file.filename}' uploaded and stored in the database successfully.", "file_path": file_path}
+        return {
+            "message": f"File '{file.filename}' uploaded and stored in the database successfully.",
+            "table_name": table_name,
+            "file_path": file_path,
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"File upload and database storage failed: {str(e)}")
 
@@ -47,19 +59,22 @@ async def etl_execute_endpoint(prompt: str = Form(...)):
         results = llm_service.execute_query(text(generated_sql))
 
         if not results:
-            return {
+            response = {
                 "message": "Query executed successfully but returned no data.",
                 "generated_sql": generated_sql,
                 "files": None
             }
+            return response
 
-        return {
+        response = {
             "message": "Query executed successfully.",
             "generated_sql": generated_sql,
             "results": results
         }
+        return response
 
     except Exception as e:
+        print(f"DEBUG: Exception: {str(e)}")
         raise HTTPException(status_code=500, detail=f"ETL execution failed: {str(e)}")
 
 @app.post("/etl/save/")
@@ -106,10 +121,25 @@ async def etl_save_endpoint(prompt: str = Form(...), save_table_name: str = Form
         raise HTTPException(status_code=500, detail=f"ETL process failed: {str(e)}")
 
 @app.get("/download/")
-async def download_file(file_path: str):
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="File not found.")
-    return FileResponse(file_path)
+async def download_file(file_name: str):
+    """
+    Download a file from the saved directory.
+    - file_name: The name of the file to be downloaded.
+    """
+    try:
+        # Path to the directory where files are saved
+        save_directory = "/app/Datasets/output"
+
+        # Verify that the requested file exists in the directory
+        file_path = os.path.join(save_directory, file_name)
+        if not os.path.exists(file_path):
+            raise HTTPException(status_code=404, detail="File not found.")
+
+        # Return the file as a response
+        return FileResponse(file_path)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
