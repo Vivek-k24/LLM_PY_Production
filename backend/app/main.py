@@ -41,12 +41,12 @@ async def upload_file(file: UploadFile):
         if not table_name:
             raise ValueError("Table name not defined in the metadata file.")
         
-        llm_service.store_data_in_sql(data, table_name=table_name)
+        llm_service.store_data_in_sql(file_path= file_path, table_name= table_name)
+        os.remove(file_path)
 
         return {
             "message": f"File '{file.filename}' uploaded and stored in the database successfully.",
             "table_name": table_name,
-            "file_path": file_path,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"File upload and database storage failed: {str(e)}")
