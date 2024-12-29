@@ -31,25 +31,37 @@ llm_service = LLMService(api_key=API_KEY, db_url=DB_URL, metadata_path=METADATA_
 
 @app.post("/upload/")
 async def upload_file(file: UploadFile):
+    """
+    Upload a dataset, store it in the database, and update dataset_metadata.json.
+    """
     try:
         file_path = os.path.join(DATASETS_FOLDER, file.filename)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
+        # Load the dataset to extract column names
         data = llm_service.load_dataset(file_path)
-        table_name = llm_service.dataset_metadata.get("dataset_name")
-        if not table_name:
-            raise ValueError("Table name not defined in the metadata file.")
-        
-        llm_service.store_data_in_sql(file_path= file_path, table_name= table_name)
+        columns = {col: "Description not provided" for col in data.columns}
+
+        # Define dataset name (use the file name without extension)
+        dataset_name = os.path.splitext(file.filename)[0]
+
+        # Update metadata
+        llm_service.metadata_manager.add_dataset_metadata(dataset_name, columns)
+        llm_service.metadata_manager.save_metadata()
+
+        # Store the dataset in the database
+        llm_service.store_data_in_sql(file_path, table_name=dataset_name)
         os.remove(file_path)
 
         return {
-            "message": f"File '{file.filename}' uploaded and stored in the database successfully.",
-            "table_name": table_name,
+            "message": f"File '{file.filename}' uploaded, stored in the database, and metadata updated successfully.",
+            "dataset_name": dataset_name,
+            "columns": columns
         }
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"File upload and database storage failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"File upload and metadata update failed: {str(e)}")
 
 @app.post("/etl/execute/")
 async def etl_execute_endpoint(prompt: str = Form(...)):
