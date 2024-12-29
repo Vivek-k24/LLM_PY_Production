@@ -32,6 +32,7 @@ RUN pip list
 
 # Copy application code
 COPY . .
+COPY ./Datasets/dataset_metadata.json /app/Datasets/dataset_metadata.json
 
 # Expose backend port
 EXPOSE 8000

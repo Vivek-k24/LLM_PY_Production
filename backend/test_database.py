@@ -1,8 +1,12 @@
-from sqlalchemy import create_engine
-from sqlalchemy.sql import text
+from sqlalchemy import create_engine, text
 
-engine = create_engine("mssql+pyodbc://sa:YourStrong!Passw0rd@llm_py_production-db-1:1433/datasets?driver=ODBC+Driver+17+for+SQL+Server")
+# Replace with your connection string
+DATABASE_URL = "mssql+pyodbc://sa:Newstrongpassword123@db:1433/datasets?driver=ODBC+Driver+17+for+SQL+Server"
 
+# Create the database engine
+engine = create_engine(DATABASE_URL)
 
-with engine.connect() as conn:
-    print("Connection successful!")
+# Test the connection
+with engine.connect() as connection:
+    result = connection.execute(text("SELECT 1"))
+    print(result.fetchall())

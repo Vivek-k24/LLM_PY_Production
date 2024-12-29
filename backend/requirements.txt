@@ -8,3 +8,5 @@ python-multipart
 langchain
 langchain-community
 langchain-openai
+openpyxl
+psycopg2-binary

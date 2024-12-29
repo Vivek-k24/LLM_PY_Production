@@ -9,8 +9,6 @@ services:
     volumes:
       - ./backend:/app
       - ./backend/Datasets:/app/Datasets
-    depends_on:
-      - db
     networks:
       - app_network
     restart: always
@@ -29,15 +27,16 @@ services:
     restart: always
 
   db:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    image: postgres:latest
+    container_name: postgres-container
     ports:
-      - "1433:1433"
+      - "5432:5432"
     environment:
-      ACCEPT_EULA: "Y"
-      SA_PASSWORD: "YourStrong!Passw0rd"
-      MSSQL_PID: "Express"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: app_db
     volumes:
-      - mssql_data:/var/opt/mssql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - app_network
     restart: always
@@ -47,4 +46,4 @@ networks:
     driver: bridge
 
 volumes:
-  mssql_data:
+  postgres_data:

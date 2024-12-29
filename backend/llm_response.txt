@@ -1,3 +1,202 @@
-- Total commission earned: $3,146,588,551.23
-- Top salesperson: Michael Smith with a commission of $1,571,856.41
-- Car make with the highest sales: Honda with a commission earned of $631,756,255.58
+Successful Prompts:
+Prompt: How many cars were sold in May 2023?
+Status: Success
+
+Prompt: What is the total sale price of cars sold by Lee Wilson?
+Status: Success
+
+Prompt: How many Chevrolet cars were sold in 2022?
+Status: Success
+
+Prompt: List all car models sold by Jason Jackson in 2023.
+Status: Success
+
+Prompt: What is the average commission earned for cars sold in 2023?
+Status: Success
+
+Prompt: How many unique customers bought Ford cars?
+Status: Success
+
+Prompt: Which salesperson sold the most Honda cars?
+Status: Success
+
+Prompt: What is the total revenue generated from Civic car sales?
+Status: Success
+
+Prompt: List all car sales made in December 2022.
+Status: Success
+
+Prompt: What is the highest sale price of a car in 2023?
+Status: Success
+
+Prompt: How many cars were sold in 2022?
+Status: Success
+
+Prompt: What is the total commission earned by Stephanie Barber?
+Status: Success
+
+Prompt: What is the most popular car make sold by Christopher Cline?
+Status: Success
+
+Prompt: List all sales made to customers named 'David'.
+Status: Success
+
+Prompt: What is the total sale price for cars sold by Brenda Wilson in 2015?
+Status: Success
+
+Prompt: How many cars were sold by each salesperson in 2023?
+Status: Success
+
+Prompt: What is the average sale price of Chevrolet cars sold in 2022?
+Status: Success
+
+Prompt: How many Civic cars were sold by Jessica Wong?
+Status: Success
+
+Prompt: What is the total revenue generated from Nissan cars?
+Status: Success
+
+Prompt: What is the average commission rate for cars sold in 2023?
+Status: Success
+
+Prompt: List all sales with a sale price greater than 30,000 in 2022.
+Status: Success
+
+Prompt: Which salesperson generated the highest total revenue in 2023?
+Status: Success
+
+Prompt: What is the total commission earned for Ford cars?
+Status: Success
+
+Prompt: How many cars sold in 2022 were manufactured in 2010?
+Status: Success
+
+Prompt: What is the lowest sale price for a car sold in 2023?
+Status: Success
+
+Prompt: What is the total revenue generated from Silverado car sales?
+Status: Success
+
+Prompt: How many Altima cars were sold in 2022?
+Status: Success
+
+Prompt: What is the total revenue generated from cars sold by April Clarke?
+Status: Success
+
+Prompt: How many cars were sold in 2023 by Heather Sutton?
+Status: Success
+
+Prompt: What is the average sale price for Altima cars sold in 2022?
+Status: Success
+
+Prompt: Which car make had the highest total revenue in 2023?
+Status: Success
+
+Prompt: List all sales made by Angela Mcclain in 2022.
+Status: Success
+
+Prompt: What is the average commission earned for cars sold by Scott Gutierrez?
+Status: Success
+
+Prompt: How many cars were sold by each salesperson in 2022?
+Status: Success
+
+Prompt: What is the total revenue generated from cars sold in 2023?
+Status: Success
+
+Prompt: How many cars manufactured in 2016 were sold in 2022?
+Status: Success
+
+Prompt: What is the average sale price for Silverado cars sold by Wesley Snow?
+Status: Success
+
+Prompt: Which salesperson had the highest average sale price in 2023?
+Status: Success
+
+Prompt: List all sales where the commission earned was greater than 5,000 in 2022.
+Status: Success
+
+Prompt: How many unique customers bought cars in 2023?
+Status: Success
+
+Prompt: What is the total sale price for cars sold in December 2023?
+Status: Success
+
+Prompt: List all sales made by Tina Zimmerman in 2022.
+Status: Success
+
+Prompt: How many cars manufactured in 2020 were sold in 2023?
+Status: Success
+
+Prompt: Which salesperson had the highest total commission in 2022?
+Status: Success
+
+
+Failed Prompts:
+Prompt: Which car model had the highest average sale price in 2023?
+Error: Error executing query: (psycopg2.errors.UndefinedFunction) operator does not exist: date ~~ unknown
+LINE 3: WHERE "date" LIKE '2023/%'
+                     ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT "carmodel"
+FROM car_sales_data
+WHERE "date" LIKE '2023/%%'
+GROUP BY "carmodel"
+ORDER BY AVG("saleprice") DESC
+LIMIT 1;]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+
+Prompt: Which car model had the highest total sales revenue in 2023?
+Error: Error executing query: (psycopg2.errors.UndefinedFunction) operator does not exist: date ~~ unknown
+LINE 3: WHERE "date" LIKE '2023/%'
+                     ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT "carmodel"
+FROM car_sales_data
+WHERE "date" LIKE '2023/%%'
+GROUP BY "carmodel"
+ORDER BY SUM("saleprice") DESC
+LIMIT 1;]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+
+Prompt: Which salesperson sold the least number of cars in 2023?
+Error: Error executing query: (psycopg2.errors.UndefinedFunction) operator does not exist: date ~~ unknown
+LINE 3: WHERE "date" LIKE '2023/%'
+                     ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT "salesperson"
+FROM car_sales_data
+WHERE "date" LIKE '2023/%%'
+GROUP BY "salesperson"
+ORDER BY COUNT(*) ASC
+LIMIT 1;]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+
+Prompt: What is the highest commission earned for a car sold in 2023?
+Error: Error executing query: (psycopg2.errors.UndefinedFunction) operator does not exist: date ~~ unknown
+LINE 3: WHERE "date" LIKE '2023/%';
+                     ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT MAX("commissionearned") 
+FROM car_sales_data 
+WHERE "date" LIKE '2023/%%';]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+
+Prompt: What is the most popular car model sold in 2023?
+Error: Error executing query: (psycopg2.errors.UndefinedFunction) operator does not exist: date ~~ unknown
+LINE 3: WHERE "date" LIKE '2023/%'
+                     ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+[SQL: SELECT "carmodel", COUNT(*) as ModelCount
+FROM car_sales_data
+WHERE "date" LIKE '2023/%%'
+GROUP BY "carmodel"
+ORDER BY ModelCount DESC
+LIMIT 1;]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+
