@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Form, UploadFile
+from fastapi import FastAPI, HTTPException, Form, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 import os
@@ -95,7 +95,8 @@ async def etl_save_endpoint(prompt: str = Form(...), save_table_name: str = Form
         df = pd.DataFrame(results)
         df.columns = [f"column_{i}" if not col or col.isspace() else col for i, col in enumerate(df.columns)]
 
-        llm_service.store_data_in_sql(df, table_name=save_table_name)
+        # Save the DataFrame directly to the database
+        llm_service.store_dataframe_in_sql(df, table_name=save_table_name)
 
         output_folder = os.path.join(DATASETS_FOLDER, "output")
         os.makedirs(output_folder, exist_ok=True)
@@ -120,26 +121,51 @@ async def etl_save_endpoint(prompt: str = Form(...), save_table_name: str = Form
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"ETL process failed: {str(e)}")
 
+
 @app.get("/download/")
-async def download_file(file_name: str):
+async def download_table(table_name: str = Query(..., description="The name of the table to download"),
+                         file_format: str = Query("csv", description="The desired file format: 'csv' or 'xlsx'")):
     """
-    Download a file from the saved directory.
-    - file_name: The name of the file to be downloaded.
+    Download a table from the database as a .csv or .xlsx file.
+    - table_name: The name of the table to download.
+    - file_format: The desired file format ('csv' or 'xlsx').
     """
     try:
-        # Path to the directory where files are saved
-        save_directory = "/app/Datasets/output"
+        # Validate file format
+        if file_format not in ["csv", "xlsx"]:
+            raise HTTPException(status_code=400, detail="Invalid file format. Use 'csv' or 'xlsx'.")
 
-        # Verify that the requested file exists in the directory
-        file_path = os.path.join(save_directory, file_name)
-        if not os.path.exists(file_path):
-            raise HTTPException(status_code=404, detail="File not found.")
+        # Query to fetch data from the database
+        query = f"SELECT * FROM {table_name}"
+        with llm_service.engine.connect() as connection:
+            df = pd.read_sql(query, connection)
 
-        # Return the file as a response
-        return FileResponse(file_path)
+        if df.empty:
+            raise HTTPException(status_code=404, detail=f"Table '{table_name}' is empty or does not exist.")
+
+        # Path to save the file
+        output_folder = os.path.join(DATASETS_FOLDER, "output")
+        os.makedirs(output_folder, exist_ok=True)
+        file_path = os.path.join(output_folder, f"{table_name}.{file_format}")
+
+        # Save the file in the requested format
+        if file_format == "csv":
+            df.to_csv(file_path, index=False)
+        elif file_format == "xlsx":
+            df.to_excel(file_path, index=False)
+
+        # Add Content-Disposition header to set the filename
+        headers = {
+            "Content-Disposition": f'attachment; filename="{table_name}.{file_format}"'
+        }
+
+        # Return the file as a response with the specified filename
+        return FileResponse(file_path, headers=headers)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
 
 if __name__ == "__main__":
     import uvicorn

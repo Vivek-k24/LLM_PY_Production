@@ -51,6 +51,21 @@ class LLMService:
             print(f"Upload complete. Total rows written to {table_name}: {total_rows}.")
         except Exception as e:
             raise ValueError(f"Error storing data in PostgreSQL: {e}")
+        
+    def store_dataframe_in_sql(self, dataframe, table_name):
+        """Store a dataframe directly in the PostgreSQL database."""
+        try:
+            dataframe.columns = [col.lower() for col in dataframe.columns]
+            dataframe.to_sql(
+                table_name,
+                con=self.engine,
+                if_exists="replace",
+                index=False,
+                method= "multi"
+                )
+            print(f"Dataframe successfully stored in table {table_name}.")
+        except Exception as e:
+            raise ValueError(f"Error storing dataframe in PostgreSQL: {e}")
 
 
 
