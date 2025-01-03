@@ -30,7 +30,7 @@ os.makedirs(DATASETS_FOLDER, exist_ok=True)
 llm_service = LLMService(api_key=API_KEY, db_url=DB_URL, metadata_path=METADATA_PATH)
 
 @app.post("/upload/")
-async def upload_file(file: UploadFile):
+async def upload_file(file: UploadFile, purpose: str = Form(...), replace : bool = Form(False)):
     """
     Upload a dataset, store it in the database, and update dataset_metadata.json.
     """
@@ -39,37 +39,65 @@ async def upload_file(file: UploadFile):
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # Load the dataset to extract column names
-        data = llm_service.load_dataset(file_path)
-        columns = {col: "Description not provided" for col in data.columns}
+        # Load and preprocess the dataset
+        data, date_columns, time_columns, timestamp_columns = llm_service.load_dataset(file_path)
 
-        # Define dataset name (use the file name without extension)
+        # Define dataset name
         dataset_name = os.path.splitext(file.filename)[0]
 
+        # Determine time_filter_column and date_filter_column
+        time_filter_column = timestamp_columns[0] if timestamp_columns else (time_columns[0] if time_columns else None)
+        date_filter_column = date_columns if date_columns else "No date columns detected"
+
+        # Generate dynamic descriptions for columns using LLM
+        column_descriptions = {}
+        for col in data.columns:
+            column_descriptions[col] = llm_service.generate_column_description(col)
+
         # Update metadata
-        llm_service.metadata_manager.add_dataset_metadata(dataset_name, columns)
+        llm_service.metadata_manager.add_dataset_metadata(
+            dataset_name,
+            column_descriptions,
+            purpose=purpose,
+            time_filter_column = time_filter_column,
+            date_filter_column = date_filter_column,
+            replace=replace
+        )
         llm_service.metadata_manager.save_metadata()
 
-        # Store the dataset in the database
-        llm_service.store_data_in_sql(file_path, table_name=dataset_name)
+        # Save the preprocessed dataset to the database
+        data.to_sql(dataset_name, con=llm_service.engine, if_exists="replace", index=False)
+
+        # Clean up the temporary file
         os.remove(file_path)
 
         return {
-            "message": f"File '{file.filename}' uploaded, stored in the database, and metadata updated successfully.",
+            "message": f"File '{file.filename}' uploaded, processed, and stored in the database. Metadata updated.",
             "dataset_name": dataset_name,
-            "columns": columns
+            "columns": column_descriptions,
+            "time_filter_column": time_filter_column or "No time column detected",
+            "date_filter_column": date_filter_column or "No date columns detected"
         }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"File upload and metadata update failed: {str(e)}")
 
-@app.post("/etl/execute/")
-async def etl_execute_endpoint(prompt: str = Form(...)):
-    try:
-        refined_prompt = llm_service.generate_dynamic_prompt(prompt)
-        generated_sql = llm_service.generate_sql_query(refined_prompt)
-        results = llm_service.execute_query(text(generated_sql))
 
+@app.post("/etl/execute/")
+async def etl_execute_endpoint(dataset_name: str = Form(...),prompt: str = Form(...)):
+    try:
+        metadata = llm_service.metadata_manager.get_metadata()
+        if dataset_name not in metadata:
+            raise ValueError(f"Dataset '{dataset_name}' not found in metadata.")
+        
+        dataset_metadata = metadata[dataset_name]
+        print(f"Debug: Dataset metadata: {dataset_metadata}")
+        
+        #Generate SQL query using LLM and execute
+        refined_prompt = llm_service.generate_dynamic_prompt(prompt, dataset_name)
+        generated_sql = llm_service.generate_sql_query(refined_prompt, dataset_name)
+        results = llm_service.execute_query(text(generated_sql))
+        
         if not results:
             response = {
                 "message": "Query executed successfully but returned no data.",

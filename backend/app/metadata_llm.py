@@ -21,11 +21,26 @@ class MetadataManager:
             raise ValueError("Metadata not loaded. Call load_metadata first.")
         return self.metadata
 
-    def add_dataset_metadata(self, dataset_name, columns):
-        """Add metadata for a new dataset."""
-        if dataset_name in self.metadata:
+    def add_dataset_metadata(self, dataset_name, columns, purpose, time_filter_column=None, date_filter_column=None,  replace= False):
+        """
+        Add metadata for a new dataset.
+        - dataset_name: The name of the dataset.
+        - columns: The columns of the dataset with descriptions.
+        - purpose: The purpose of the dataset.
+        - time_filter_column: The default time filter column for the dataset.
+        """
+        if dataset_name in self.metadata and not replace:
             raise ValueError(f"Dataset '{dataset_name}' already exists in metadata.")
-        self.metadata[dataset_name] = {"columns": columns}
+        if dataset_name in self.metadata and replace:
+            print(f"Replacing existing metadata for dataset '{dataset_name}'")
+
+        self.metadata[dataset_name] = {
+            "dataset_name": dataset_name,
+            "columns": columns,
+            "time_filter_column": time_filter_column,
+            "date_filter_column": date_filter_column,
+            "purpose": purpose
+        }
 
     def save_metadata(self):
         """Save updated metadata back to the JSON file."""
